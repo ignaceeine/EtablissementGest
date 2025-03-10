@@ -17,7 +17,7 @@
                                 <select name="classe_id" id="classe_id" class="form-select" required>
                                     <option value="" selected>Sélectionnez une classe...</option>
                                     @foreach($classes as $classe)
-                                        <option value="{{ $classe->id }}">{{ $classe->nom }}</option>
+                                        <option value="{{ $classe->id }}">{{ $classe->code }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -36,7 +36,7 @@
                             <!-- Sélection du Professeur -->
                             <div class="mb-3">
                                 <label for="prof_id" class="form-label">Professeur</label>
-                                <select name="prof_id" id="prof_id" class="form-select" required>
+                                <select name="professeur_id" id="prof_id" class="form-select" required>
                                     <option value="" selected>Sélectionnez un professeur...</option>
                                     @foreach($professeurs as $p)
                                         <option value="{{ $p->id }}">{{ $p->prenom }} {{ $p->nom }}</option>

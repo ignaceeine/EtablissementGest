@@ -1,7 +1,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
     <div class="container">
-        <a class="navbar-brand" href="#">EtablissementGest</a>
+        <a class="navbar-brand" href="{{ route('home') }}">EtablissementGest</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
                 aria-controls="navbarContent" aria-expanded="false" aria-label="Basculer la navigation">
             <span class="navbar-toggler-icon"></span>
@@ -24,7 +24,7 @@
                     <a class="nav-link {{ request()->routeIs('professeur.*') ? 'active' : '' }}" href="{{ route('professeur.index') }}">Professeurs</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Emplois du temps</a>
+                    <a class="nav-link {{ request()->routeIs('emploiDuTemps.*') ? 'active' : '' }}" href="{{ route('emploiDuTemps.index') }}">Emplois du temps</a>
                 </li>
             </ul>
         </div>

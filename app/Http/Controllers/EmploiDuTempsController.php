@@ -66,4 +66,12 @@ class EmploiDuTempsController extends Controller
 
         return redirect()->route('emploiDuTemps.index');
     }
+
+    public function destroy($id)
+    {
+        $edt = EmploiDuTemps::find($id);
+        $edt->delete();
+
+        return redirect()->route('emploiDuTemps.index');
+    }
 }
