@@ -3,22 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Professeur;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class ProfesseurController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $professeurs = Professeur::all();
         return view('professeur.index', compact('professeurs'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('professeur.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'nom' => ['required'],
@@ -31,13 +33,13 @@ class ProfesseurController extends Controller
         return redirect()->route('professeur.index');
     }
 
-    public function edit($id)
+    public function edit($id): View
     {
         $professeur = Professeur::find($id);
         return view('professeur.edit', compact('professeur'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'id' => ['required'],
@@ -52,7 +54,7 @@ class ProfesseurController extends Controller
         return redirect()->route('professeur.index');
     }
 
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
         $prof = Professeur::find($id);
         $prof->delete();

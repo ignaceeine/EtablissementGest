@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Professeur extends Model
 {
@@ -13,7 +14,7 @@ class Professeur extends Model
             'email',
         ];
 
-    public function cours()
+    public function cours(): HasMany
     {
         return $this->hasMany(Cours::class);
     }

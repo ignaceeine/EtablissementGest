@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Classe extends Model
 {
@@ -12,12 +13,12 @@ class Classe extends Model
             'nom'
         ];
 
-    public function cours()
+    public function cours(): HasMany
     {
         return $this->hasMany(Cours::class);
     }
 
-    public function etudiants()
+    public function etudiants(): HasMany
     {
         return $this->hasMany(Etudiant::class);
     }
