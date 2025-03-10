@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmploiDuTemps extends Model
 {
@@ -16,17 +17,17 @@ class EmploiDuTemps extends Model
             'professeur_id'
         ];
 
-    public function classe()
+    public function classe(): BelongsTo
     {
         return $this->belongsTo(Classe::class);
     }
 
-    public function cours()
+    public function cours(): BelongsTo
     {
         return $this->belongsTo(Cours::class);
     }
 
-    public function professeur()
+    public function professeur(): BelongsTo
     {
         return $this->belongsTo(Professeur::class);
     }

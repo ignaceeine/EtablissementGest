@@ -6,17 +6,19 @@ use App\Models\Classe;
 use App\Models\Cours;
 use App\Models\EmploiDuTemps;
 use App\Models\Professeur;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class EmploiDuTempsController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $emploiDuTemps = EmploiDuTemps::all();
         return view('emploiDuTemps.index', compact('emploiDuTemps'));
     }
 
-    public function create()
+    public function create(): View
     {
         $classes = Classe::all();
         $professeurs = Professeur::all();
@@ -24,7 +26,7 @@ class EmploiDuTempsController extends Controller
         return view('emploiDuTemps.create', compact('classes', 'professeurs', 'cours'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'date' => 'required',
@@ -40,7 +42,7 @@ class EmploiDuTempsController extends Controller
         return redirect()->route('emploiDuTemps.index');
     }
 
-    public function edit($id)
+    public function edit($id): View
     {
         $emploiDuTemps = EmploiDuTemps::find($id);
         $classes = Classe::all();
@@ -50,7 +52,7 @@ class EmploiDuTempsController extends Controller
         return view('emploiDuTemps.edit', compact('emploiDuTemps', 'classes', 'professeurs', 'cours'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'id' => 'required',
@@ -67,7 +69,7 @@ class EmploiDuTempsController extends Controller
         return redirect()->route('emploiDuTemps.index');
     }
 
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
         $edt = EmploiDuTemps::find($id);
         $edt->delete();
