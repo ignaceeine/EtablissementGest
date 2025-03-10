@@ -12,6 +12,7 @@ class EmploiDuTemps extends Model
             'heureDebut',
             'heureFin',
             'classe_id',
+            'cours_id',
             'professeur_id'
         ];
 

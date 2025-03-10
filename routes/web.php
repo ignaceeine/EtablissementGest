@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\CoursController;
+use App\Http\Controllers\EmploiDuTempsController;
 use App\Http\Controllers\EtudiantController;
 use App\Http\Controllers\ProfesseurController;
 use Illuminate\Support\Facades\Route;
@@ -37,3 +38,10 @@ Route::post('cours/store', [CoursController::class, 'store'])->name('cours.store
 Route::get('cours/edit/{id}', [CoursController::class, 'edit'])->name('cours.edit');
 Route::post('cours/update', [CoursController::class, 'update'])->name('cours.update');
 Route::delete('cours/delete/{id}', [CoursController::class, 'destroy'])->name('cours.destroy');
+
+Route::get('emploiDuTemps', [EmploiDuTempsController::class, 'index'])->name('emploiDuTemps.index');
+Route::get('emploiDuTemps/create', [EmploiDuTempsController::class, 'create'])->name('emploiDuTemps.create');
+Route::post('emploiDuTemps/store', [EmploiDuTempsController::class, 'store'])->name('emploiDuTemps.store');
+Route::get('emploiDuTemps/edit/{id}', [EmploiDuTempsController::class, 'edit'])->name('emploiDuTemps.edit');
+Route::post('emploiDuTemps/update', [EmploiDuTempsController::class, 'update'])->name('emploiDuTemps.update');
+Route::delete('emploiDuTemps/delete/{id}', [EmploiDuTempsController::class, 'destroy'])->name('emploiDuTemps.destroy');
