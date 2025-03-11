@@ -194,4 +194,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/etablissement-gest:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/etablissement-gest:${{ env.SHORT_SHA }}
