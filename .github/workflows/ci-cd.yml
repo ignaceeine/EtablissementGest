@@ -22,9 +22,6 @@ jobs:
         with:
           php-version: '8.2'
 
-      - name: Supprimer le fichier .env
-        run: rm -f .env
-
       - name: Build du projet (Install dependencies)
         run: composer install --no-scripts --no-interaction
 
