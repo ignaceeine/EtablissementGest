@@ -194,4 +194,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ignaceeine/etablissement-gest:${{ github.sha }}
+          tags: |
+            ignaceeine/etablissement-gest:${{ github.sha }}
+            ignaceeine/etablissement-gest:latest

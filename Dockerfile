@@ -1,25 +1,43 @@
-FROM php:8.2-fpm
+FROM php:8.2-fpm-alpine
 
-# Installation des dépendances système
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql
+# Install system dependencies
+RUN apk add --no-cache \
+    nginx \
+    postgresql-dev \
+    libpng-dev \
+    libzip-dev \  # Added for ZIP support
+    zip \
+    unzip \
+    supervisor
 
-# Installation de Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install PHP extensions
+# Make sure libzip-dev is installed before installing the zip extension
+RUN docker-php-ext-install pdo pdo_pgsql pgsql zip gd
 
-# Copie du code de l'application
+# Set working directory
 WORKDIR /var/www/html
+
+# Copy composer files first for better caching
+COPY composer.json composer.lock ./
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Install dependencies
+RUN composer install --no-dev --no-scripts --no-progress --prefer-dist --optimize-autoloader
+
+# Copy the rest of the application
 COPY . .
 
-# Installation des dépendances PHP
-RUN composer install --no-progress --prefer-dist --optimize-autoloader
+# Run post-install scripts
+RUN composer dump-autoload --optimize
 
-# Configuration des permissions
-RUN chown -R www-data:www-data /var/www/html
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Exposition du port
-EXPOSE 9000
+# Expose port 80
+EXPOSE 80
 
-# Commande par défaut
+# Start supervisor (if you have supervisor configured)
 CMD ["php-fpm"]
