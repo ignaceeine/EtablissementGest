@@ -15,8 +15,8 @@ class InterfaceTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
-                //->assertSee('Bienvenue') // Ajustez selon le texte attendu sur votre page d'accueil
-                ->assertVisible('nav')
+                ->assertSee('Bienvenue') // Ajustez selon le texte attendu sur votre page d'accueil
+                ->assertVisible('.navbar')
                 ->assertVisible('footer')
                 ->screenshot('accueil');
         });
