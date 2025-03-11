@@ -5,3 +5,46 @@ on:
     branches:
       - develop
       - main
+
+env:
+  APP_NAME: EtablissementGest
+  LOCAL_REGISTRY: ${{ secrets.LOCAL_REGISTRY_URL }}  # Ex. localhost:5000
+  PUBLIC_REGISTRY: docker.io  # Ou AWS ECR
+
+jobs:
+  # Étape 1 : Récupération, Build, Tests, Qualité
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Build du projet (Install dependencies)
+        run: composer install --no-scripts --no-interaction
+
+      - name: Exécution des tests unitaires
+        run: php artisan test
+
+      - name: Exécution des tests IHM (Laravel Dusk)
+        run: |
+          php artisan serve --host=0.0.0.0 --port=8000 &
+          php artisan dusk
+
+      - name: Vérification de la qualité logicielle (PHPStan)
+        run: |
+          composer require --dev phpstan/phpstan
+          ./vendor/bin/phpstan analyse
+
+      - name: Packaging de l’artéfact (zip)
+        run: zip -r ${{ env.APP_NAME }}-${{ github.sha }}.zip .
+
+      - name: Upload artefact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-artifact
+          path: ${{ env.APP_NAME }}-${{ github.sha }}.zip

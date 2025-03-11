@@ -5,7 +5,7 @@
         <!-- Entête de la page avec titre et bouton d'ajout -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Liste des Professeurs</h1>
-            <a href="{{ route('professeur.create') }}" class="btn btn-primary">Ajouter un Professeur</a>
+            <a href="{{ route('professeur.create') }}" class="btn btn-success">Ajouter un Professeur</a>
         </div>
 
         <!-- Card contenant le tableau -->
