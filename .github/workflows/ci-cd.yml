@@ -13,7 +13,7 @@ jobs:
     steps:
       # Étape 1: Récupération du code source depuis le SCM
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       # Étape 2: Configuration de PHP
       - name: Setup PHP
@@ -167,7 +167,7 @@ jobs:
       # Capture d'écran en cas d'échec des tests
       - name: Archive screenshots and logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dusk-artifacts
           path: |
