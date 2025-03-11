@@ -20,7 +20,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, dom, fileinfo, mysql
+          extensions: mbstring, dom, fileinfo, sqlite3
           coverage: xdebug
 
       # Étape 2 (suite): Préparation pour le build
@@ -59,23 +59,22 @@ jobs:
       - name: Run unit tests
         run: vendor/bin/phpunit --testsuite Unit
 
-      # Étape 4: Préparation pour les tests IHM avec Laravel Dusk
-      - name: Install Chrome
+      # Étape 4: Préparation pour les tests IHM avec Laravel Dusk (Firefox)
+      - name: Install Firefox
         run: |
-          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          google-chrome --version
+          sudo apt-get install -y firefox-esr
+          firefox --version
 
-      - name: Install Matching ChromeDriver
+      - name: Install GeckoDriver
         run: |
-          CHROME_VERSION=$(google-chrome --version | grep -oP "Chrome \K[0-9]+")
-          php artisan dusk:chrome-driver $CHROME_VERSION
+          wget https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz
+          sudo tar -xzf geckodriver-v0.33.0-linux64.tar.gz -C /usr/local/bin
+          geckodriver --version
 
-      - name: Start Chrome Driver
+      - name: Start GeckoDriver
         run: |
-          ./vendor/laravel/dusk/bin/chromedriver-linux &
+          geckodriver --host=127.0.0.1 --port=4444 &
           php artisan serve &
         env:
           APP_URL: "http://127.0.0.1:8000"
@@ -85,6 +84,15 @@ jobs:
         run: php artisan dusk
         env:
           APP_URL: "http://127.0.0.1:8000"
+          DUSK_DRIVER_URL: "http://127.0.0.1:4444"
+
+      # Capture d'écran en cas d'échec des tests
+      - name: Archive screenshots of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: dusk-screenshots
+          path: tests/Browser/screenshots
 
       # Étape 5: Vérification de la qualité logicielle avec PHPStan
       - name: Run PHP Static Analysis
