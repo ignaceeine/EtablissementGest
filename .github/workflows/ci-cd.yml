@@ -194,4 +194,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: nachochjfvc@gmail.com/etablissement-gest:${{ github.sha }}
+          tags: ignaceeine/etablissement-gest:${{ github.sha }}
