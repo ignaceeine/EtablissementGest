@@ -10,6 +10,23 @@ jobs:
   laravel-tests:
     runs-on: ubuntu-latest
 
+    # Configuration du service PostgreSQL
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testing
+        ports:
+          - 5432:5432
+        # Options de vérification d'état pour s'assurer que PostgreSQL est prêt
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       # Étape 1: Récupération du code source depuis le SCM
       - name: Checkout code
@@ -20,7 +37,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, dom, fileinfo, sqlite3
+          extensions: mbstring, dom, fileinfo, pgsql, pdo_pgsql
           coverage: xdebug
 
       # Étape 2 (suite): Préparation pour le build
@@ -45,19 +62,29 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      # Configuration de la base de données SQLite pour les tests
-      - name: Configure SQLite Database
+      # Configuration de la base de données PostgreSQL pour les tests
+      - name: Configure PostgreSQL Database
         run: |
           php artisan config:clear
-          touch database/database.sqlite
           php artisan migrate --force
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
 
       # Étape 3: Exécution des tests unitaires
       - name: Run unit tests
         run: vendor/bin/phpunit --testsuite Unit
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
 
       # Étape 4: Préparation pour les tests IHM avec Chrome
       - name: Install Chrome
@@ -83,8 +110,16 @@ jobs:
 
       - name: Start Laravel Server
         run: |
-          # Démarrer le serveur en arrière-plan
+          # Démarrer le serveur en arrière-plan avec toutes les variables d'environnement nécessaires
+          APP_URL=http://127.0.0.1:8000 \
+          DB_CONNECTION=pgsql \
+          DB_HOST=localhost \
+          DB_PORT=5432 \
+          DB_DATABASE=testing \
+          DB_USERNAME=postgres \
+          DB_PASSWORD=postgres \
           php artisan serve --port=8000 > server.log 2>&1 &
+
           # Sauvegarder le PID pour pouvoir tuer le serveur plus tard
           echo $! > server.pid
 
@@ -103,27 +138,49 @@ jobs:
             echo "Attempt $i: Server not ready yet, waiting..."
             sleep 2
           done
-        env:
-          APP_URL: "http://127.0.0.1:8000"
-
-      # IMPORTANT: Modification of DuskTestCase.php to use default driver URL
-      - name: Update DuskTestCase for CI environment
-        run: |
-          # Modify the DuskTestCase.php file to use the default driver URL
-          sed -i "s/'http:\/\/localhost:9515'/'http:\/\/localhost:9515'/g" tests/DuskTestCase.php
-          cat tests/DuskTestCase.php
 
       # Étape 4 (suite): Diagnostic et exécution des tests IHM avec Laravel Dusk
-      - name: Run browser tests with debugging
+      - name: Prepare Dusk environment
         run: |
-          # Créer le répertoire de captures d'écran s'il n'existe pas
+          # Make sure the screenshots directory exists
           mkdir -p tests/Browser/screenshots
 
-          # Exécuter les tests Dusk
-          export APP_URL=http://127.0.0.1:8000
+          # Check database connection
+          echo "Checking PostgreSQL connection..."
+          php -r "try { new PDO('pgsql:host=localhost;port=5432;dbname=testing', 'postgres', 'postgres'); echo 'Connection successful!'; } catch(PDOException \$e) { echo \$e->getMessage(); exit(1); }"
 
-          # Important: Let Dusk start and manage ChromeDriver itself
-          php artisan dusk --verbose || (echo "⚠️ Dusk tests failed, checking logs and screenshots..."; ls -la tests/Browser/screenshots/; echo "Continuing pipeline anyway..."; true)
+      - name: Create .env.dusk file
+        run: |
+          cat > .env.dusk.local << EOF
+          APP_NAME=Laravel
+          APP_ENV=testing
+          APP_KEY=$(php artisan --no-ansi key:generate --show)
+          APP_DEBUG=true
+          APP_URL=http://127.0.0.1:8000
+
+          DB_CONNECTION=pgsql
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_DATABASE=testing
+          DB_USERNAME=postgres
+          DB_PASSWORD=postgres
+
+          CACHE_DRIVER=array
+          SESSION_DRIVER=array
+          QUEUE_DRIVER=sync
+          EOF
+
+      - name: Run browser tests with debugging
+        run: |
+          # Exécuter les tests Dusk avec toutes les variables d'environnement nécessaires
+          APP_URL=http://127.0.0.1:8000 \
+          DB_CONNECTION=pgsql \
+          DB_HOST=localhost \
+          DB_PORT=5432 \
+          DB_DATABASE=testing \
+          DB_USERNAME=postgres \
+          DB_PASSWORD=postgres \
+          php artisan dusk --verbose || (echo "⚠️ Dusk tests failed, checking logs and screenshots..."; ls -la tests/Browser/screenshots/; cat server.log; cat storage/logs/laravel*.log 2>/dev/null || true; echo "Continuing pipeline anyway..."; true)
 
       # Capture d'écran en cas d'échec des tests
       - name: Archive screenshots and logs
