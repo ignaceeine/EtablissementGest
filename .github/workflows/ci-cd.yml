@@ -20,7 +20,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, dom, fileinfo, sqlite3
+          extensions: mbstring, dom, fileinfo, mysql
           coverage: xdebug
 
       # Étape 2 (suite): Préparation pour le build
@@ -59,22 +59,13 @@ jobs:
       - name: Run unit tests
         run: vendor/bin/phpunit --testsuite Unit
 
-      # Étape 4: Préparation pour les tests IHM avec Laravel Dusk (Firefox)
-      - name: Install Firefox
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y firefox-esr
-          firefox --version
+      # Étape 4: Préparation pour les tests IHM avec Laravel Dusk
+      - name: Install Chrome Driver
+        run: php artisan dusk:chrome-driver
 
-      - name: Install GeckoDriver
+      - name: Start Chrome Driver
         run: |
-          wget https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz
-          sudo tar -xzf geckodriver-v0.33.0-linux64.tar.gz -C /usr/local/bin
-          geckodriver --version
-
-      - name: Start GeckoDriver
-        run: |
-          geckodriver --host=127.0.0.1 --port=4444 &
+          ./vendor/laravel/dusk/bin/chromedriver-linux &
           php artisan serve &
         env:
           APP_URL: "http://127.0.0.1:8000"
@@ -84,15 +75,6 @@ jobs:
         run: php artisan dusk
         env:
           APP_URL: "http://127.0.0.1:8000"
-          DUSK_DRIVER_URL: "http://127.0.0.1:4444"
-
-      # Capture d'écran en cas d'échec des tests
-      - name: Archive screenshots of failed tests
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: dusk-screenshots
-          path: tests/Browser/screenshots
 
       # Étape 5: Vérification de la qualité logicielle avec PHPStan
       - name: Run PHP Static Analysis
