@@ -8,8 +8,6 @@ on:
 
 env:
   APP_NAME: EtablissementGest
-  LOCAL_REGISTRY: ${{ secrets.LOCAL_REGISTRY_URL }}  # Ex. localhost:5000
-  PUBLIC_REGISTRY: docker.io  # Ou AWS ECR
 
 jobs:
   # Étape 1 : Récupération, Build, Tests, Qualité
