@@ -25,6 +25,9 @@ jobs:
       - name: Build du projet (Install dependencies)
         run: composer install --no-scripts --no-interaction
 
+      - name: Exécuter les migrations
+        run: php artisan migrate --env=testing
+
       - name: Exécution des tests unitaires
         run: php artisan test
 
