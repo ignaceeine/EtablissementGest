@@ -1,45 +1,93 @@
-name: CI/CD Pipeline
+name: Laravel CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - develop
-      - main
-
-env:
-  APP_NAME: EtablissementGest
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
-  # Étape 1 : Récupération, Build, Tests, Qualité
-  build-and-test:
+  laravel-tests:
     runs-on: ubuntu-latest
-    steps:
-      - name: Récupération du code source
-        uses: actions/checkout@v2
 
+    steps:
+      # Étape 1: Récupération du code source depuis le SCM
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Étape 2: Configuration de PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          extensions: mbstring, dom, fileinfo, mysql
+          coverage: xdebug
 
-      - name: Build du projet (Install dependencies)
-        run: composer install --no-scripts --no-interaction
+      # Étape 2 (suite): Préparation pour le build
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
-      - name: Générer la clé d'application
-        run: php artisan key:generate --env=testing
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
-      - name: Exécuter les migrations
-        run: php artisan migrate --env=testing
+      # Étape 2 (suite): Installation des dépendances PHP
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: Exécution des tests unitaires
-        run: php artisan test
-
-      - name: Exécution des tests IHM (Laravel Dusk)
+      # Préparation de l'environnement de test
+      - name: Prepare the application
         run: |
-          php artisan serve --host=0.0.0.0 --port=8000 &
-          php artisan dusk
+          cp .env.example .env
+          php artisan key:generate
 
-      - name: Vérification de la qualité logicielle (PHPStan)
+      # Configuration de la base de données SQLite pour les tests
+      - name: Configure SQLite Database
         run: |
-          composer require --dev phpstan/phpstan
-          ./vendor/bin/phpstan analyse
+          php artisan config:clear
+          touch database/database.sqlite
+          php artisan migrate --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+      # Étape 3: Exécution des tests unitaires
+      - name: Run unit tests
+        run: vendor/bin/phpunit --testsuite Unit
+
+      # Étape 4: Préparation pour les tests IHM avec Laravel Dusk
+      - name: Install Chrome Driver
+        run: php artisan dusk:chrome-driver
+
+      - name: Start Chrome Driver
+        run: |
+          ./vendor/laravel/dusk/bin/chromedriver-linux &
+          php artisan serve &
+        env:
+          APP_URL: "http://127.0.0.1:8000"
+
+      # Étape 4 (suite): Exécution des tests IHM avec Laravel Dusk
+      - name: Run browser tests
+        run: php artisan dusk
+        env:
+          APP_URL: "http://127.0.0.1:8000"
+
+      # Étape 5: Vérification de la qualité logicielle avec PHPStan
+      - name: Run PHP Static Analysis
+        run: vendor/bin/phpstan analyse --memory-limit=2G
+
+      # Génération des rapports de couverture des tests (optionnel)
+      - name: Generate test coverage report
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      # Publication des rapports de couverture (optionnel)
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
