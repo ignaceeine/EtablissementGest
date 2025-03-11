@@ -23,7 +23,7 @@ class EmploiDuTempsController extends Controller
         $classes = Classe::all();
         $professeurs = Professeur::all();
         $cours = Cours::all();
-        return view('emploiDuTemps.create', compact('classes', 'professeurs', 'cours'));
+        return view('emploidutemps.create', compact('classes', 'professeurs', 'cours'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -49,7 +49,7 @@ class EmploiDuTempsController extends Controller
         $professeurs = Professeur::all();
         $cours = Cours::all();
 
-        return view('emploiDuTemps.edit', compact('emploiDuTemps', 'classes', 'professeurs', 'cours'));
+        return view('emploidutemps.edit', compact('emploiDuTemps', 'classes', 'professeurs', 'cours'));
     }
 
     public function update(Request $request): RedirectResponse
