@@ -60,8 +60,18 @@ jobs:
         run: vendor/bin/phpunit --testsuite Unit
 
       # Étape 4: Préparation pour les tests IHM avec Laravel Dusk
-      - name: Install Chrome Driver
-        run: php artisan dusk:chrome-driver
+      - name: Install Chrome
+        run: |
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          google-chrome --version
+
+      - name: Install Matching ChromeDriver
+        run: |
+          CHROME_VERSION=$(google-chrome --version | grep -oP "Chrome \K[0-9]+")
+          php artisan dusk:chrome-driver $CHROME_VERSION
 
       - name: Start Chrome Driver
         run: |
