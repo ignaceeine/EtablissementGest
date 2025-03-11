@@ -15,7 +15,7 @@ class EmploiDuTempsController extends Controller
     public function index(): View
     {
         $emploiDuTemps = EmploiDuTemps::all();
-        return view('emploiDuTemps.index', compact('emploiDuTemps'));
+        return view('emploidutemps.index', compact('emploiDuTemps'));
     }
 
     public function create(): View
