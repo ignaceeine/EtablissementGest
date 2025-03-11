@@ -6,12 +6,13 @@ use App\Models\Classe;
 use App\Models\Cours;
 use App\Models\Professeur;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CoursControllerTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     #[Test]
     public function index_affiche_tous_les_cours()

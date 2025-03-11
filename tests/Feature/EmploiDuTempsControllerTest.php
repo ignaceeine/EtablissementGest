@@ -6,12 +6,12 @@ use App\Models\Classe;
 use App\Models\Cours;
 use App\Models\EmploiDuTemps;
 use App\Models\Professeur;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class EmploiDuTempsControllerTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     public function test_index_affiche_tous_les_emplois_du_temps()
     {
