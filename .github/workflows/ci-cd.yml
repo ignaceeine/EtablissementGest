@@ -106,63 +106,24 @@ jobs:
         env:
           APP_URL: "http://127.0.0.1:8000"
 
-      - name: Start ChromeDriver
+      # IMPORTANT: Modification of DuskTestCase.php to use default driver URL
+      - name: Update DuskTestCase for CI environment
         run: |
-          # Démarrer ChromeDriver en arrière-plan (port 9515 par défaut)
-          ./vendor/laravel/dusk/bin/chromedriver-linux > chromedriver.log 2>&1 &
-          echo $! > chromedriver.pid
-
-          # Attendre que ChromeDriver soit prêt
-          echo "Waiting for ChromeDriver to be ready..."
-          for i in {1..10}; do
-            if curl -s http://127.0.0.1:9515/status > /dev/null; then
-              echo "ChromeDriver is up and running!"
-              break
-            fi
-            if [ $i -eq 10 ]; then
-              echo "ERROR: ChromeDriver did not start in time."
-              cat chromedriver.log
-              exit 1
-            fi
-            echo "Attempt $i: ChromeDriver not ready yet, waiting..."
-            sleep 2
-          done
+          # Modify the DuskTestCase.php file to use the default driver URL
+          sed -i "s/'http:\/\/localhost:9515'/'http:\/\/localhost:9515'/g" tests/DuskTestCase.php
+          cat tests/DuskTestCase.php
 
       # Étape 4 (suite): Diagnostic et exécution des tests IHM avec Laravel Dusk
-      - name: Diagnostic checks before tests
-        run: |
-          echo "Checking if Laravel server is accessible..."
-          curl -I http://127.0.0.1:8000
-
-          echo "Checking if ChromeDriver is running..."
-          curl -I http://127.0.0.1:9515/status
-
-          echo "Current directory structure:"
-          ls -la
-
-          echo "Test directory structure:"
-          ls -la tests/
-
-          echo "Browser tests directory:"
-          ls -la tests/Browser/ || echo "Browser directory not found"
-
-          echo "Listing Laravel routes..."
-          php artisan route:list
-        env:
-          APP_URL: "http://127.0.0.1:8000"
-          DUSK_DRIVER_URL: "http://127.0.0.1:9515"
-
       - name: Run browser tests with debugging
         run: |
           # Créer le répertoire de captures d'écran s'il n'existe pas
           mkdir -p tests/Browser/screenshots
 
-          # Définir les variables d'environnement et exécuter Dusk
+          # Exécuter les tests Dusk
           export APP_URL=http://127.0.0.1:8000
-          export DUSK_DRIVER_URL=http://127.0.0.1:9515
 
-          # Exécuter Dusk avec détails supplémentaires
-          php artisan dusk --verbose || (echo "⚠️ Dusk tests failed, checking logs and screenshots..."; ls -la tests/Browser/screenshots/; cat server.log; cat chromedriver.log; echo "Continuing pipeline anyway..."; true)
+          # Important: Let Dusk start and manage ChromeDriver itself
+          php artisan dusk --verbose || (echo "⚠️ Dusk tests failed, checking logs and screenshots..."; ls -la tests/Browser/screenshots/; echo "Continuing pipeline anyway..."; true)
 
       # Capture d'écran en cas d'échec des tests
       - name: Archive screenshots and logs
@@ -173,7 +134,7 @@ jobs:
           path: |
             tests/Browser/screenshots
             server.log
-            chromedriver.log
+            storage/logs
 
       # Étape 5: Vérification de la qualité logicielle avec PHPStan
       - name: Run PHP Static Analysis
@@ -185,7 +146,4 @@ jobs:
         run: |
           if [ -f server.pid ]; then
             kill $(cat server.pid) || true
-          fi
-          if [ -f chromedriver.pid ]; then
-            kill $(cat chromedriver.pid) || true
           fi
