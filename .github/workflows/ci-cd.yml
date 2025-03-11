@@ -67,6 +67,7 @@ jobs:
         run: |
           php artisan config:clear
           php artisan migrate --force
+          php artisan db:seed
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
