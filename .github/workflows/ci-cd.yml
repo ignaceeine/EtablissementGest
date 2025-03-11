@@ -39,6 +39,3 @@ jobs:
         run: |
           composer require --dev phpstan/phpstan
           ./vendor/bin/phpstan analyse
-
-      - name: Packaging de l’artéfact (zip)
-        run: zip -r ${{ env.APP_NAME }}-${{ github.sha }}.zip .
