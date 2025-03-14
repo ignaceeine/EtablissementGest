@@ -6,7 +6,7 @@
         <div class="hero-overlay"></div>
         <div class="container text-center hero-content">
             <h1 class="display-3">Bienvenue sur EtablissementGest</h1>
-            <p class="lead">Votre solution tout-en-un pour la gestion d'établissement</p>
+            <p class="lead">Votre solution tout-en-un</p>
         </div>
     </section>
 
